@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        #chat-container { border: 1px solid #ddd; height: 400px; overflow-y: scroll; padding: 10px; margin-bottom: 20px; }
+        #user-input { width: 70%; padding: 10px; }
+        #send-button, #url-button, #pdf-button { padding: 10px; margin: 5px; }
+        #pdf-upload { display: none; }
+    </style>
+</head>
+<body>
+    <div>
+        <p>Bienvenido, {{ session['username'] }}!</p>
+        <a href="{{ url_for('logout') }}">Cerrar Sesión</a>
+    </div>
+    <h1>Chatbot</h1>
+    <div id="chat-container"></div>
+    <input type="text" id="user-input" placeholder="Escribe tu mensaje aquí...">
+    <button id="send-button">Enviar</button>
+    <button id="url-button">Procesar URL</button>
+    <button id="pdf-button">Subir PDF</button>
+    <input type="file" id="pdf-upload" accept=".pdf">
+    <script>
+        $(document).ready(function() {
+            let currentContext = null;
+            let currentPdfFilename = null;
+
+            function addMessage(sender, message) {
+                $('#chat-container').append(`<p><strong>${sender}:</strong> ${message}</p>`);
+                $('#chat-container').scrollTop($('#chat-container')[0].scrollHeight);
+            }
+
+            function sendMessage(message, context = null) {
+                $.ajax({
+                    url: '/chat',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ message: message, context: context }),
+                    success: function(response) {
+                        if (response.error) {
+                            addMessage('Sistema', 'Error: ' + response.error);
+                        } else {
+                            addMessage('Bot', response.response);
+                        }
+                        // Reseteamos el contexto después de cada mensaje
+                        currentContext = null;
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        addMessage('Sistema', 'Error al comunicarse con el bot: ' + textStatus + ' - ' + errorThrown);
+                    }
+                });
+            }
+
+            $('#send-button').click(function() {
+                var message = $('#user-input').val();
+                if (message) {
+                    addMessage('Tú', message);
+                    sendMessage(message, currentContext);
+                    $('#user-input').val('');
+                }
+            });
+
+            $('#url-button').click(function() {
+                currentContext = 'url';
+                addMessage('Sistema', 'Por favor, ingresa la URL que deseas procesar.');
+            });
+
+            $('#pdf-button').click(function() {
+                $('#pdf-upload').click();
+            });
+
+            $('#pdf-upload').change(function() {
+                var file = this.files[0];
+                var formData = new FormData();
+                formData.append('file', file);
+
+                $.ajax({
+                    url: '/upload_pdf',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        addMessage('Sistema', response.message);
+                        currentContext = 'pdf';
+                        currentPdfFilename = response.filename;
+                        sendMessage(currentPdfFilename, 'pdf');
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        var errorMsg = jqXHR.responseJSON ? jqXHR.responseJSON.error : 'Error desconocido';
+                        addMessage('Sistema', 'Error al subir el PDF: ' + errorMsg);
+                    }
+                });
+            });
+
+            $('#user-input').keypress(function(e) {
+                if (e.which == 13) {
+                    $('#send-button').click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

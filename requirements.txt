@@ -1,0 +1,6 @@
+openai
+requests
+beautifulsoup4
+PyPDF2
+flask
+werkzeug
