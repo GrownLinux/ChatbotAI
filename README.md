@@ -1,4 +1,5 @@
 # Chatbot con Procesamiento de PDF y URL
+#### link: https://scrapping.replit.app/chatbot
 
 ## Descripción
 Este proyecto es un chatbot interactivo desarrollado en Python utilizando Flask. El chatbot es capaz de procesar archivos PDF y URLs, extraer información de ellos, y responder preguntas basadas en su contenido. Además, utiliza la API de OpenAI para generar respuestas inteligentes.
