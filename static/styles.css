@@ -1,4 +1,5 @@
 body {
+  /* Establece la fuente predeterminada y el límite de ancho de la página */
   font-family: Arial, sans-serif;
   max-width: 800px;
   margin: 0 auto;
@@ -6,12 +7,14 @@ body {
 }
 
 input[type="text"], input[type="password"] {
+  /* Amplía el ancho de los campos de entrada al 100% y agrega un relleno y un margen */
   width: 100%;
   padding: 10px;
   margin: 10px 0;
 }
 
 input[type="submit"] {
+  /* Estiliza el botón de envío con un color de fondo, color de texto y sin borde */
   background-color: #4CAF50;
   color: white;
   padding: 14px 20px;
@@ -22,5 +25,6 @@ input[type="submit"] {
 }
 
 a {
+  /* Establece el color de los enlaces */
   color: dodgerblue;
 }

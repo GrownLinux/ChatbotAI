@@ -7,6 +7,12 @@ from database.db_manager import DatabaseManager
 
 class Chatbot:
     def __init__(self, api_key):
+        """
+        Inicializa la instancia del Chatbot con la clave API proporcionada.
+
+        :param api_key: Clave API para acceder a la interfaz de OpenAI
+        :raises ValueError: Si no se proporciona la clave API
+        """
         if not api_key:
             raise ValueError("API key no proporcionada")
         self.conversation = Conversation()
@@ -15,14 +21,23 @@ class Chatbot:
         self.current_pdf = None
 
     def process_input(self, user_input, context=None):
+        """
+        Procesa la entrada del usuario basada en el contexto proporcionado.
+
+        :param user_input: La entrada del usuario, puede ser una URL o una pregunta.
+        :param context: El contexto de la entrada, puede ser 'url' o 'pdf'.
+        :return: Respuesta generada basada en el contexto de la entrada.
+        """
         try:
             if context == 'url':
+                # Procesa la URL proporcionada si no es un PDF
                 if user_input.lower().endswith('.pdf'):
                     return "Esta URL parece ser un PDF. Por favor, usa la opción 'Subir PDF' para procesarlo."
                 content = scrape_url(user_input)
                 self.db.save_content(user_input, content)
                 return f"He guardado la información de la URL: {user_input}. Puedes hacerme preguntas sobre su contenido."
             elif context == 'pdf':
+                # Procesa la entrada del PDF
                 self.current_pdf = user_input
                 content = self.db.get_content(self.current_pdf)
                 if content:
@@ -31,7 +46,7 @@ class Chatbot:
                 else:
                     return f"No se encontró información sobre el PDF '{self.current_pdf}'. Por favor, asegúrate de haberlo subido correctamente."
 
-            # Si no es un nuevo contexto, asumimos que es una pregunta sobre el PDF actual
+            # Asume que la entrada es una pregunta sobre el PDF actual si no hay un nuevo contexto
             if self.current_pdf:
                 content = self.db.get_content(self.current_pdf)
                 if content:
@@ -49,6 +64,12 @@ class Chatbot:
             return f"Error al procesar la entrada: {str(e)}"
 
     def process_pdf(self, file_path):
+        """
+        Procesa un archivo PDF, extrayendo su contenido y guardándolo en la base de datos.
+
+        :param file_path: Ruta del archivo PDF a procesar
+        :return: Mensaje indicando el éxito o el fracaso del procesamiento
+        """
         try:
             content = extract_pdf_text(file_path)
             filename = os.path.basename(file_path)
